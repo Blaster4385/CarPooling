@@ -49,10 +49,11 @@ func (server *Server) setupRoutes() {
 
 	// * PASSENGERS
 	authRoute.PUT("/passengers", server.updatePassenger)
-
+	
 	// * DRIVERS
 	authRoute.POST("/drivers", server.cretaeDriver)
 	authRoute.PUT("/drivers", server.updateDriver)
+
 
 }
 

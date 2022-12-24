@@ -12,6 +12,7 @@ type Config struct {
 	ServerAddress       string        `mapstructure:"SERVER_ADDRESS"`
 	TokenSecret         string        `mapstructure:"TOKEN_SECRET"`
 	AccessTokenDuration time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
+	MapsKey             string        `mapstructure:"MAPS_KEY"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
