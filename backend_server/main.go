@@ -10,7 +10,7 @@ import (
 func main() {
 	config, err := util.LoadConfig(".")
 	if err != nil {
-		log.Fatal("cannot create a config", err)
+		log.Fatal("cannot create a config ", err)
 	}
 
 	mongoClient := util.ConnectDB(config.MongoUri)

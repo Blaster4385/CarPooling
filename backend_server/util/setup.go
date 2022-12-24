@@ -10,7 +10,7 @@ import (
 )
 
 func ConnectDB(mongoUri string) *mongo.Client {
-	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
+	client, err := mongo.NewClient(options.Client().ApplyURI(mongoUri))
 	if err != nil {
 		log.Fatal("cannot create a client", err)
 	}
@@ -39,5 +39,3 @@ func GetCollection(client *mongo.Client, collectionName string, config Config) *
 	collection := client.Database(dbName).Collection(collectionName)
 	return collection
 }
-
-

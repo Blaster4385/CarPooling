@@ -33,18 +33,20 @@ func NewServer(config util.Config, client *mongo.Client) (*Server, error) {
 	}
 
 	server.setupRoutes()
-
 	return server, nil
 }
 
 func (server *Server) setupRoutes() {
 	r := gin.Default()
+	defer func() {
+		server.router = r
+	}()
 
 	r.GET("/", server.entryPoint)
+
 }
 
 func (server *Server) Start(serverAddress string) error {
-	server.router = gin.Default()
 	return server.router.Run(serverAddress)
 }
 
