@@ -47,8 +47,13 @@ func (server *Server) setupRoutes() {
 
 	authRoute := r.Group("/").Use(authMiddleware(server.tokenMaker))
 
+	// * PASSENGERS
+	authRoute.PUT("/passengers", server.updatePassenger)
+
 	// * DRIVERS
 	authRoute.POST("/drivers", server.cretaeDriver)
+	authRoute.PUT("/drivers", server.updateDriver)
+
 }
 
 func (server *Server) Start(serverAddress string) error {
