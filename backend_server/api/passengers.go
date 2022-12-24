@@ -26,7 +26,7 @@ func (server *Server) createPassenger(c *gin.Context) {
 	resp.User = req
 	resp.Token = accessToken
 
-	_, err = server.collection.Driver.InsertOne(c, resp)
+	_, err = server.collection.Passenger.InsertOne(c, resp)
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key error") {
 			c.JSON(http.StatusBadRequest, errorResponse(err))

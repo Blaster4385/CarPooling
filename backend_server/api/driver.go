@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/achintya-7/car_pooling_backend/models"
@@ -20,7 +19,6 @@ func (server *Server) cretaeDriver(c *gin.Context) {
 	}
 	authPayload := c.MustGet(authorizationPayloadKey).(*token.Payload)
 
-	fmt.Println(authPayload.Email)
 	filter := bson.M{"user.email": authPayload.Email}
 
 	err := server.collection.Passenger.FindOne(c, filter).Decode(&result)

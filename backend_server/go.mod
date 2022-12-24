@@ -2,7 +2,10 @@ module github.com/achintya-7/car_pooling_backend
 
 go 1.19
 
-require github.com/spf13/viper v1.14.0
+require (
+	github.com/spf13/viper v1.14.0
+	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
+)
 
 require (
 	github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da // indirect
@@ -29,7 +32,6 @@ require (
 	github.com/xdg-go/scram v1.1.1 // indirect
 	github.com/xdg-go/stringprep v1.0.3 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
-	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
 	golang.org/x/net v0.4.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
