@@ -27,9 +27,13 @@ func ConnectDB(mongoUri string) *mongo.Client {
 	if err != nil {
 		log.Fatal("cannot ping to DB", err)
 	}
+	
+
 
 	return client
 }
+
+var DB *mongo.Client
 
 func GetCollection(client *mongo.Client, collectionName string, config Config) *mongo.Collection {
 	dbName := config.DBName

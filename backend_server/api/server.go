@@ -14,7 +14,7 @@ type Server struct {
 	router     *gin.Engine
 	tokenMaker token.Maker
 	client     *mongo.Client
-	collection *util.Collection
+	collection util.Collection
 }
 
 func NewServer(config util.Config, client *mongo.Client) (*Server, error) {
@@ -43,7 +43,12 @@ func (server *Server) setupRoutes() {
 	}()
 
 	r.GET("/", server.entryPoint)
+	r.POST("/passengers", server.createPassenger)
 
+	authRoute := r.Group("/").Use(authMiddleware(server.tokenMaker))
+
+	// * DRIVERS
+	authRoute.POST("/drivers", server.cretaeDriver)
 }
 
 func (server *Server) Start(serverAddress string) error {

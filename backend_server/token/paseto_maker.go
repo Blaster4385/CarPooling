@@ -2,6 +2,7 @@ package token
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/o1egl/paseto"
@@ -26,8 +27,9 @@ func NewPasetoMaker(symmetricKey string) (Maker, error) {
 	return maker, nil
 }
 
-func (maker *PasetoMaker) CreateToken(username string, duration time.Duration) (string, error) {
-	payLoad, err := NewPayload(username, duration)
+func (maker *PasetoMaker) CreateToken(email string, duration time.Duration) (string, error) {
+	
+	payLoad, err := NewPayload(email, duration)
 	if err != nil {
 		return "", err
 	}
@@ -43,9 +45,10 @@ func (maker *PasetoMaker) CreateToken(username string, duration time.Duration) (
 func (maker *PasetoMaker) VerifyToken(token string) (*Payload, error) {
 	payload := &Payload{}
 
+	fmt.Println(payload)
 	err := maker.paseto.Decrypt(token, maker.symmetricKey, payload, nil)
 	if err != nil {
-		return nil, err
+		return nil, ErrInvalidToken
 	}
 
 	err = payload.Valid()
