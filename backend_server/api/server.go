@@ -45,15 +45,31 @@ func (server *Server) setupRoutes() {
 	r.GET("/", server.entryPoint)
 	r.POST("/passengers", server.createPassenger)
 
+	// * AUTHENTICATION
 	authRoute := r.Group("/").Use(authMiddleware(server.tokenMaker))
 
 	// * PASSENGERS
 	authRoute.PUT("/passengers", server.updatePassenger)
-	
+
 	// * DRIVERS
 	authRoute.POST("/drivers", server.cretaeDriver)
 	authRoute.PUT("/drivers", server.updateDriver)
 
+	// * API
+	authRoute.GET("/api/placePredictions/:place", server.placePredicions)
+	authRoute.POST("/api/route", server.placeRoute)
+
+	// * RIDES
+	authRoute.POST("/rides", server.createRide)
+	authRoute.DELETE("/rides", server.deleteRide)
+	authRoute.GET("/rides/all", server.getAllRides)
+	authRoute.PUT("/rides", server.updateRide)
+	authRoute.GET("/rides", server.getCurrentRide)
+	authRoute.GET("rides/complete", server.completeRide)
+	// authRoute.GET("/rides/requests", server.getRideRequests)
+
+	// * REQUESTS
+	
 
 }
 
