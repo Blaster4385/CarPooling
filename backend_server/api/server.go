@@ -50,10 +50,12 @@ func (server *Server) setupRoutes() {
 
 	// * PASSENGERS
 	authRoute.PUT("/passengers", server.updatePassenger)
+	authRoute.GET("/passengers", server.getPassenger)
 
 	// * DRIVERS
 	authRoute.POST("/drivers", server.cretaeDriver)
 	authRoute.PUT("/drivers", server.updateDriver)
+	authRoute.GET("/drivers", server.getDriver)
 
 	// * API
 	authRoute.GET("/api/placePredictions/:place", server.placePredicions)
@@ -69,7 +71,8 @@ func (server *Server) setupRoutes() {
 	// authRoute.GET("/rides/requests", server.getRideRequests)
 
 	// * REQUESTS
-	
+	authRoute.POST("/requests", server.createRequest)
+	// authRoute.GET("/requests", server.getRequest)
 
 }
 

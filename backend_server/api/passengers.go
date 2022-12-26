@@ -10,6 +10,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func (server *Server) createPassenger(c *gin.Context) {
@@ -21,7 +22,7 @@ func (server *Server) createPassenger(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := server.tokenMaker.CreateToken(req.Email, server.config.AccessTokenDuration)
+	accessToken, err := server.tokenMaker.CreateToken(req.Email, req.Phone, server.config.AccessTokenDuration)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -69,6 +70,12 @@ func (server *Server) updatePassenger(c *gin.Context) {
 
 	authPayload := c.MustGet(authorizationPayloadKey).(*token.Payload)
 
+	token, err := server.tokenMaker.CreateToken(req.Email, req.Phone, server.config.AccessTokenDuration)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
 	pByte, err := bson.Marshal(req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -83,12 +90,35 @@ func (server *Server) updatePassenger(c *gin.Context) {
 		return
 	}
 
+	updateDoc["token"] = token
+
 	filter := bson.M{"email": authPayload.Email}
 	update := bson.M{
 		"$set": updateDoc,
 	}
+	options := options.FindOneAndUpdate().SetReturnDocument(options.After)
 
-	if err := server.collection.Passenger.FindOneAndUpdate(c, filter, update).Decode(&result); err != nil {
+	if err := server.collection.Passenger.FindOneAndUpdate(c, filter, update, options).Decode(&result); err != nil {
+		if err == mongo.ErrNoDocuments {
+			c.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+func (server *Server) getPassenger(c *gin.Context) {
+	var result models.CreatePassengerResponse
+
+	authPayload := c.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	filter := bson.M{"email": authPayload.Email}
+
+	if err := server.collection.Passenger.FindOne(c, filter).Decode(&result); err != nil {
 		if err == mongo.ErrNoDocuments {
 			c.JSON(http.StatusNotFound, errorResponse(err))
 			return

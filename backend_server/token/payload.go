@@ -14,12 +14,13 @@ var (
 
 type Payload struct {
 	ID        uuid.UUID `json:"id"`
+	Phone     string       `json:"phone"`
 	Email     string    `json:"email"`
 	IssuedAt  time.Time `json:"issued_at"`
 	ExpiredAt time.Time `json:"expired_at"`
 }
 
-func NewPayload(email string, duration time.Duration) (*Payload, error) {
+func NewPayload(email string, phone string, duration time.Duration) (*Payload, error) {
 	tokenID, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
@@ -28,6 +29,7 @@ func NewPayload(email string, duration time.Duration) (*Payload, error) {
 	payload := &Payload{
 		ID:        tokenID,
 		Email:     email,
+		Phone:     phone,
 		IssuedAt:  time.Now(),
 		ExpiredAt: time.Now().Add(duration),
 	}

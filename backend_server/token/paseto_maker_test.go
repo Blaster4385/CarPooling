@@ -13,11 +13,12 @@ func TestPasetoMaker(t *testing.T) {
 	require.NoError(t, err)
 
 	email := util.RandomEmail()
+	phone := util.RandomString(10)
 	duration := time.Hour
 
 	issuedAt := time.Now()
 
-	token, err := maker.CreateToken(email, duration)
+	token, err := maker.CreateToken(email, phone, duration)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 

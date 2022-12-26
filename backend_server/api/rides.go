@@ -39,7 +39,7 @@ func (server *Server) createRide(c *gin.Context) {
 	}
 
 	filter2 := bson.M{"email": authPayload.Email, "complete": false}
-	err = server.collection.Rides.FindOne(c, filter2).Decode(&result2)
+	err = server.collection.Ride.FindOne(c, filter2).Decode(&result2)
 	if err == nil || result2.Email != "" {
 		err := errors.New("ride already exists")
 		c.JSON(http.StatusConflict, errorResponse(err))
@@ -64,10 +64,10 @@ func (server *Server) createRide(c *gin.Context) {
 		PlaceId:     req.PlaceId,
 		Timestamp:   req.Timestamp,
 		Complete:    false,
-		Riders: []models.Rider{
+		Passengers: []models.Passenger{
 			{
 				Email:     result.Email,
-				Origin:   req.Origin,
+				Origin:    req.Origin,
 				Phone:     result.Phone,
 				Name:      result.Name,
 				OriginLat: placeRoute.Points[0].Lat,
@@ -76,7 +76,7 @@ func (server *Server) createRide(c *gin.Context) {
 		},
 	}
 
-	_, err = server.collection.Rides.InsertOne(c, response)
+	_, err = server.collection.Ride.InsertOne(c, response)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -92,7 +92,7 @@ func (server *Server) deleteRide(c *gin.Context) {
 	authPayload := c.MustGet(authorizationPayloadKey).(*token.Payload)
 
 	filter := bson.M{"email": authPayload.Email, "complete": false}
-	err := server.collection.Rides.FindOneAndDelete(c, filter).Decode(&result)
+	err := server.collection.Ride.FindOneAndDelete(c, filter).Decode(&result)
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -114,7 +114,7 @@ func (server *Server) getAllRides(c *gin.Context) {
 	filter := bson.M{"email": authPayload.Email}
 	opts := options.Find().SetSort(bson.M{"timestamp": -1})
 
-	cursor, err := server.collection.Rides.Find(c, filter, opts)
+	cursor, err := server.collection.Ride.Find(c, filter, opts)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -163,7 +163,7 @@ func (server *Server) updateRide(c *gin.Context) {
 
 	update := bson.M{"$set": updateDoc}
 	filter := bson.M{"email": authPayload.Email, "complete": false}
-	err = server.collection.Rides.FindOneAndUpdate(c, filter, update).Decode(&result)
+	err = server.collection.Ride.FindOneAndUpdate(c, filter, update).Decode(&result)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -179,7 +179,7 @@ func (server *Server) completeRide(c *gin.Context) {
 	filter := bson.M{"email": authPayload.Email, "complete": false}
 	update := bson.M{"$set": bson.M{"complete": true}}
 
-	err := server.collection.Rides.FindOneAndUpdate(c, filter, update)
+	err := server.collection.Ride.FindOneAndUpdate(c, filter, update)
 	if err.Err() != nil {
 		c.JSON(http.StatusInternalServerError, errorResponse(err.Err()))
 		return
@@ -194,7 +194,7 @@ func (server *Server) getCurrentRide(c *gin.Context) {
 	authPayload := c.MustGet(authorizationPayloadKey).(*token.Payload)
 
 	filter := bson.M{"email": authPayload.Email, "complete": false}
-	err := server.collection.Rides.FindOne(c, filter).Decode(&result)
+	err := server.collection.Ride.FindOne(c, filter).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			c.JSON(http.StatusBadRequest, errorResponse(err))

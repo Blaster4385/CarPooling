@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func (server *Server) cretaeDriver(c *gin.Context) {
@@ -78,8 +79,10 @@ func (server *Server) updateDriver(c *gin.Context) {
 
 	filter := bson.M{"email": authPayload.Email}
 	update := bson.M{"$set": updateDoc}
+	options := options.FindOneAndUpdate().SetReturnDocument(options.After)
+	
 
-	if err := server.collection.Driver.FindOneAndUpdate(c, filter, update).Decode(&result); err != nil {
+	if err := server.collection.Driver.FindOneAndUpdate(c, filter, update, options).Decode(&result) ; err != nil {
 		if err == mongo.ErrNoDocuments {
 			c.JSON(http.StatusNotFound, errorResponse(err))
 			return
@@ -87,6 +90,23 @@ func (server *Server) updateDriver(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+func (server *Server) getDriver(c *gin.Context) {
+	var result models.CreateDriverResponse
+
+	authPayload := c.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	filter := bson.M{"email": authPayload.Email}
+
+	err := server.collection.Driver.FindOne(c, filter).Decode(&result)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
 
 	c.JSON(http.StatusOK, result)
 }

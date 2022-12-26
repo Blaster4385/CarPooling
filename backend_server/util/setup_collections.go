@@ -7,13 +7,15 @@ import (
 type Collection struct {
 	Driver    *mongo.Collection
 	Passenger *mongo.Collection
-	Rides     *mongo.Collection
+	Ride      *mongo.Collection
+	Request   *mongo.Collection
 }
 
 func NewCollection(client *mongo.Client, config Config) Collection {
 	return Collection{
 		Driver:    client.Database(config.DBName).Collection("drivers"),
 		Passenger: client.Database(config.DBName).Collection("passengers"),
-		Rides:     client.Database(config.DBName).Collection("rides"),
+		Ride:      client.Database(config.DBName).Collection("rides"),
+		Request:   client.Database(config.DBName).Collection("requests"),
 	}
 }

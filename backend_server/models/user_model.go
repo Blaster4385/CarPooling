@@ -25,9 +25,11 @@ type CreatePassengerResponse struct {
 
 type UpdatePassengerRequest struct {
 	Name    string `bson:"name" json:"name" binding:"required"`
+	Email   string `bson:"email" json:"email" binding:"required"`
 	Phone   string `bson:"phone" json:"phone" binding:"required,max=10,min=10"`
 	Address string `bson:"address" json:"address" binding:"required"`
 	City    string `bson:"city" json:"city" binding:"required"`
 	State   string `bson:"state" json:"state" binding:"required"`
 	Pincode string `bson:"pincode" json:"pincode" binding:"required,max=6,min=6"`
+	Token   string `bson:"token" json:"token"`
 }
