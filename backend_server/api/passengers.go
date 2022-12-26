@@ -70,7 +70,7 @@ func (server *Server) updatePassenger(c *gin.Context) {
 
 	authPayload := c.MustGet(authorizationPayloadKey).(*token.Payload)
 
-	token, err := server.tokenMaker.CreateToken(req.Email, req.Phone, server.config.AccessTokenDuration)
+	token, err := server.tokenMaker.CreateToken(authPayload.Email, req.Phone, server.config.AccessTokenDuration)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
