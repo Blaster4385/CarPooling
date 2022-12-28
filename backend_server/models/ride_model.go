@@ -1,6 +1,9 @@
 package models
 
+import "go.mongodb.org/mongo-driver/bson/primitive"
+
 type CreateRideReq struct {
+	Name        string `json:"name" binding:"required"` // driver name
 	Origin      string `json:"origin" binding:"required"`
 	Destination string `json:"destination" binding:"required"`
 	Seats       int    `json:"seats" binding:"required"`
@@ -19,22 +22,6 @@ type Passenger struct {
 	OriginLng float64 `json:"origin_lng" binding:"required"`
 }
 
-type CreateRideResp struct {
-	Id          string      `json:"id" bson:"_id,omitempty"`
-	Origin      string      `json:"origin" binding:"required"`
-	Destination string      `json:"destination" binding:"required"`
-	Seats       int         `json:"seats" binding:"required"`
-	Price       int         `json:"price" binding:"required"`
-	PlaceId     string      `json:"place_id" binding:"required"`
-	OriginLat   float64     `json:"origin_lat" binding:"required"`
-	OriginLng   float64     `json:"origin_lng" binding:"required"`
-	Email       string      `json:"email" binding:"required"`
-	Phone       string      `json:"phone" binding:"required"`
-	Timestamp   int64       `json:"timestamp" binding:"required"`
-	Passengers  []Passenger `json:"passengers" binding:"required"`
-	Complete    bool        `json:"complete"`
-}
-
 type UpdateRideReq struct {
 	Price     int   `json:"price" binding:"required"`
 	Timestamp int64 `json:"timestamp" binding:"required"`
@@ -45,6 +32,20 @@ type CompleteRideReq struct {
 }
 
 type SearchRideReq struct {
-	Origin      string `json:"origin" binding:"required"`
-	Destination string `json:"destination" binding:"required"`
+	Origin string `uri:"place_id" binding:"required"`
+}
+
+type CreateRideResp struct {
+	Id          string      `json:"id" bson:"_id,omitempty"`
+	Origin      string      `json:"origin" binding:"required"`
+	Destination string      `json:"destination" binding:"required"`
+	Seats       int         `json:"seats" binding:"required"`
+	Price       int         `json:"price" binding:"required"`
+	PlaceId     string      `json:"place_id" binding:"required"`
+	Email       string      `json:"email" binding:"required"`
+	Phone       string      `json:"phone" binding:"required"`
+	Timestamp   int64       `json:"timestamp" binding:"required"`
+	Passengers  []Passenger `json:"passengers" binding:"required"`
+	Complete    bool        `json:"complete"`
+	GeoJSON     primitive.M `json:"geojson"`
 }

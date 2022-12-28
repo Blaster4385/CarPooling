@@ -177,6 +177,27 @@ type Route struct {
 	Bounds Bounds  `json:"bounds"`
 }
 
+type Cords struct {
+	Results []struct {
+		Geometry struct {
+			Bounds struct {
+				Northeast struct {
+					Lat float64 `json:"lat"`
+					Lng float64 `json:"lng"`
+				} `json:"northeast"`
+				Southwest struct {
+					Lat float64 `json:"lat"`
+					Lng float64 `json:"lng"`
+				} `json:"southwest"`
+			} `json:"bounds"`
+			Location struct {
+				Lat float64 `json:"lat"`
+				Lng float64 `json:"lng"`
+			} `json:"location"`
+		} `json:"geometry"`
+	} `json:"results"`
+}
+
 func GetPlacePredictions(input string, config utils.Config) ([]Predictions, error) {
 	location := "Northern India"
 
@@ -279,4 +300,33 @@ func GetRoute(origin, destination string, config utils.Config) (Route, error) {
 	}
 
 	return route, nil
+}
+
+func GetCords(placeId string, config utils.Config) (Point, error) {
+	var point Point
+
+	apiUrl := fmt.Sprintf("https://maps.googleapis.com/maps/api/geocode/json?place_id=%s&key=%s", url.QueryEscape(placeId), config.MapsKey)
+
+	resp, err := http.Get(apiUrl)
+	if err != nil {
+		return point, fmt.Errorf("cannot get route : %v", err)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return point, fmt.Errorf("cannot read response body : %v", err)
+	}
+
+	var cords Cords
+	err = json.Unmarshal(body, &cords)
+	if err != nil {
+		return point, fmt.Errorf("cannot unmarshal response body : %v", err)
+	}
+
+	point = Point{
+		Lat: cords.Results[0].Geometry.Location.Lat,
+		Lng: cords.Results[0].Geometry.Location.Lng,
+	}
+
+	return point, nil
 }
