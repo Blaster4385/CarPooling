@@ -10,6 +10,7 @@ type CreateRideReq struct {
 }
 
 type Passenger struct {
+	RequestID string  `json:"request_id" bson:"request_id,omitempty"` // request id
 	Email     string  `json:"email" binding:"required"`
 	Phone     string  `json:"phone" binding:"required"`
 	Name      string  `json:"name" binding:"required"`
@@ -41,4 +42,9 @@ type UpdateRideReq struct {
 
 type CompleteRideReq struct {
 	Complete bool `json:"complete" binding:"required"`
+}
+
+type SearchRideReq struct {
+	Origin      string `json:"origin" binding:"required"`
+	Destination string `json:"destination" binding:"required"`
 }

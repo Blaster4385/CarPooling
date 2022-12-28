@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/achintya-7/car_pooling_backend/util"
+	"github.com/achintya-7/car_pooling_backend/utils"
 )
 
 type PredictionList struct {
@@ -177,7 +177,7 @@ type Route struct {
 	Bounds Bounds  `json:"bounds"`
 }
 
-func GetPlacePredictions(input string, config util.Config) ([]Predictions, error) {
+func GetPlacePredictions(input string, config utils.Config) ([]Predictions, error) {
 	location := "Northern India"
 
 	apiUrl := fmt.Sprintf("https://maps.googleapis.com/maps/api/place/autocomplete/json?input=%s&location=%s&maxresults=6&key=%s", url.QueryEscape(input), url.QueryEscape(location), config.MapsKey)
@@ -212,7 +212,7 @@ func GetPlacePredictions(input string, config util.Config) ([]Predictions, error
 }
 
 // * Not using now, Error in struct as well
-func GetPlaceDetails(placeId string, config util.Config) (Place, error) {
+func GetPlaceDetails(placeId string, config utils.Config) (Place, error) {
 	apiUrl := fmt.Sprintf("https://maps.googleapis.com/maps/api/place/details/json?placeid=%s&key=%s", url.QueryEscape(placeId), config.MapsKey)
 
 	resp, err := http.Get(apiUrl)
@@ -243,7 +243,7 @@ func GetPlaceDetails(placeId string, config util.Config) (Place, error) {
 	return place, nil
 }
 
-func GetRoute(origin, destination string, config util.Config) (Route, error) {
+func GetRoute(origin, destination string, config utils.Config) (Route, error) {
 	var route Route
 
 	apiUrl := fmt.Sprintf("https://maps.googleapis.com/maps/api/directions/json?origin=%s&destination=%s&key=%s", url.QueryEscape(origin), url.QueryEscape(destination), config.MapsKey)

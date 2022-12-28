@@ -4,26 +4,26 @@ import (
 	"fmt"
 
 	"github.com/achintya-7/car_pooling_backend/token"
-	"github.com/achintya-7/car_pooling_backend/util"
+	"github.com/achintya-7/car_pooling_backend/utils"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Server struct {
-	config     util.Config
+	config     utils.Config
 	router     *gin.Engine
 	tokenMaker token.Maker
 	client     *mongo.Client
-	collection util.Collection
+	collection utils.Collection
 }
 
-func NewServer(config util.Config, client *mongo.Client) (*Server, error) {
+func NewServer(config utils.Config, client *mongo.Client) (*Server, error) {
 	tokenMaker, err := token.NewPasetoMaker(config.TokenSecret)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token make : %v", err)
 	}
 
-	collection := util.NewCollection(client, config)
+	collection := utils.NewCollection(client, config)
 
 	server := &Server{
 		config:     config,
@@ -64,15 +64,20 @@ func (server *Server) setupRoutes() {
 	// * RIDES
 	authRoute.POST("/rides", server.createRide)
 	authRoute.DELETE("/rides", server.deleteRide)
-	authRoute.GET("/rides/all", server.getAllRides)
-	authRoute.PUT("/rides", server.updateRide)
-	authRoute.GET("/rides", server.getCurrentRide)
+	authRoute.GET("/rides/driver/all", server.getAllRidesDriver)
+	authRoute.GET("/rides/passenger/all", server.getAllRidesPassenger)
+	// authRoute.PUT("/rides", server.updateRide)
+	authRoute.GET("/rides/driver", server.getCurrentRideDriver)
 	authRoute.GET("rides/complete", server.completeRide)
-	// authRoute.GET("/rides/requests", server.getRideRequests)
+	authRoute.GET("/rides/passenger", server.getCurrentRidePassengers)
 
 	// * REQUESTS
 	authRoute.POST("/requests", server.createRequest)
-	// authRoute.GET("/requests", server.getRequest)
+	authRoute.GET("/requests/driver/:ride_id", server.getRideRequestsDriver)
+	authRoute.GET("/requests/passenger", server.getRideRequestsPassenger)
+	authRoute.POST("/requests/accept", server.acceptRideRequest)
+	authRoute.POST("/requests/reject", server.rejectRideRequest)
+	authRoute.DELETE("/requests", server.deleteRideRequest)
 
 }
 

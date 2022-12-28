@@ -4,16 +4,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/achintya-7/car_pooling_backend/util"
+	"github.com/achintya-7/car_pooling_backend/utils"
 	"github.com/stretchr/testify/require"
 )
 
 func TestPasetoMaker(t *testing.T) {
-	maker, err := NewPasetoMaker(util.RandomString(32))
+	maker, err := NewPasetoMaker(utils.RandomString(32))
 	require.NoError(t, err)
 
-	email := util.RandomEmail()
-	phone := util.RandomString(10)
+	email := utils.RandomEmail()
+	phone := utils.RandomString(10)
 	duration := time.Hour
 
 	issuedAt := time.Now()

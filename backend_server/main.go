@@ -4,16 +4,16 @@ import (
 	"log"
 
 	"github.com/achintya-7/car_pooling_backend/api"
-	"github.com/achintya-7/car_pooling_backend/util"
+	"github.com/achintya-7/car_pooling_backend/utils"
 )
 
 func main() {
-	config, err := util.LoadConfig(".")
+	config, err := utils.LoadConfig(".")
 	if err != nil {
 		log.Fatal("cannot create a config ", err)
 	}
 
-	mongoClient := util.ConnectDB(config.MongoUri)
+	mongoClient := utils.ConnectDB(config.MongoUri)
 
 	server, err := api.NewServer(config, mongoClient)
 	if err != nil {

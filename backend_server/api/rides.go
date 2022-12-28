@@ -26,18 +26,6 @@ func (server *Server) createRide(c *gin.Context) {
 
 	authPayload := c.MustGet(authorizationPayloadKey).(*token.Payload)
 
-	filter := bson.M{"email": authPayload.Email}
-
-	err = server.collection.Driver.FindOne(c, filter).Decode(&result)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			c.JSON(http.StatusUnauthorized, errorResponse(err))
-			return
-		}
-		c.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
-	}
-
 	filter2 := bson.M{"email": authPayload.Email, "complete": false}
 	err = server.collection.Ride.FindOne(c, filter2).Decode(&result2)
 	if err == nil || result2.Email != "" {
@@ -66,6 +54,7 @@ func (server *Server) createRide(c *gin.Context) {
 		Complete:    false,
 		Passengers: []models.Passenger{
 			{
+				RequestID: "0",
 				Email:     result.Email,
 				Origin:    req.Origin,
 				Phone:     result.Phone,
@@ -103,15 +92,46 @@ func (server *Server) deleteRide(c *gin.Context) {
 		return
 	}
 
+	// TODO : send notification to all passengers that ride has been cancelled
+
 	c.JSON(http.StatusOK, gin.H{"message": "ride deleted successfully"})
 }
 
-func (server *Server) getAllRides(c *gin.Context) {
+func (server *Server) getAllRidesDriver(c *gin.Context) {
 	var result []models.CreateRideResp
 
 	authPayload := c.MustGet(authorizationPayloadKey).(*token.Payload)
 
 	filter := bson.M{"email": authPayload.Email}
+	opts := options.Find().SetSort(bson.M{"timestamp": -1})
+
+	cursor, err := server.collection.Ride.Find(c, filter, opts)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	err = cursor.All(c, &result)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	if len(result) == 0 {
+		c.JSON(http.StatusNotFound, []models.CreateDriverResponse{})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+func (server *Server) getAllRidesPassenger(c *gin.Context) {
+	var result []models.CreateRideResp
+
+	authPayload := c.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	filter := bson.M{"passengers.email": authPayload.Email}
+
 	opts := options.Find().SetSort(bson.M{"timestamp": -1})
 
 	cursor, err := server.collection.Ride.Find(c, filter, opts)
@@ -185,10 +205,12 @@ func (server *Server) completeRide(c *gin.Context) {
 		return
 	}
 
+	// TODO : send notification to all passengers that ride has been completed
+
 	c.JSON(http.StatusOK, gin.H{"message": "ride completed successfully"})
 }
 
-func (server *Server) getCurrentRide(c *gin.Context) {
+func (server *Server) getCurrentRideDriver(c *gin.Context) {
 	var result models.CreateRideResp
 
 	authPayload := c.MustGet(authorizationPayloadKey).(*token.Payload)
@@ -206,3 +228,89 @@ func (server *Server) getCurrentRide(c *gin.Context) {
 
 	c.JSON(http.StatusOK, result)
 }
+
+func (server *Server) getCurrentRidePassengers(c *gin.Context) {
+	var result models.CreateRideResp
+
+	authPayload := c.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	filter := bson.M{
+		"complete": false,
+		"passengers": bson.M{
+			"$elemMatch": bson.M{
+				"email": authPayload.Email,
+			},
+		},
+	}
+
+	err := server.collection.Ride.FindOne(c, filter).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			c.JSON(http.StatusBadRequest, errorResponse(err))
+			return
+		}
+		c.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+// func (server *Server) searchRides(c *gin.Context) {
+
+// 	var req models.SearchRideReq
+// 	var result []models.CreateRideResp
+
+// 	err := c.ShouldBindJSON(&req); if err != nil {
+// 		c.JSON(http.StatusBadRequest, errorResponse(err))
+// 		return
+// 	}
+
+// 	// Find all the points from the source to destination
+// 	route, err := mapsApi.GetRoute(req.Origin, req.Destination, server.config)
+// 	if err != nil {
+// 		c.JSON(http.StatusExpectationFailed, errorResponse(err))
+// 		return
+// 	}
+
+// 	var queryPoints []mapsApi.Point
+
+// 	queryPoints = append(queryPoints, route.Points[0])
+// 	queryPoints = append(queryPoints, route.Points[len(route.Points)/2])
+// 	queryPoints = append(queryPoints, route.Points[len(route.Points)-1])
+
+// 	// Query the request database for all the rides which have 3 points in their path
+// 	// and the points are within 2km of the points in the queryPoints
+// 	filter := bson.M{
+// 		"complete": false,
+// 		"origin": bson.M{
+// 			"$near": bson.M{
+// 				"$geometry": bson.M{
+// 					"type": "Point",
+// 					"coordinates": []float64{
+// 						queryPoints[0].Lng,
+// 						queryPoints[0].Lat,
+// 					},
+// 				},
+// 				"$maxDistance": 2000,
+// 			},
+// 		},
+// 		"destination": bson.M{
+// 			"$near": bson.M{
+// 				"$geometry": bson.M{
+// 					"type": "Point",
+// 					"coordinates": []float64{
+// 						queryPoints[2].Lng,
+// 						queryPoints[2].Lat,
+// 					},
+// 				},
+// 				"$maxDistance": 2000,
+// 			},
+// 		},
+// 	}
+
+
+
+// 	// Send the list of rides to the user
+
+// }
