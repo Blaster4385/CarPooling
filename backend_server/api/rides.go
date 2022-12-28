@@ -311,5 +311,10 @@ func (server *Server) searchRide(c *gin.Context) {
 
 	cursor.All(c, &result)
 
+	if len(result) == 0 {
+		c.JSON(http.StatusNotFound, []models.CreateDriverResponse{})
+		return
+	}
+
 	c.JSON(http.StatusOK, result)
 }
