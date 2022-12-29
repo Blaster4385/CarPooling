@@ -3,7 +3,6 @@ package models
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
 type RequestToDriverReq struct {
-	Name      string  `json:"name" binding:"required"`
 	RideId    string  `json:"ride_id" bson:"_id,omitempty"`
 	Origin    string  `json:"origin"`
 	OriginLat float64 `json:"origin_lat"`

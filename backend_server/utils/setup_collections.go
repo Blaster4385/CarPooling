@@ -21,3 +21,9 @@ func NewCollection(client *mongo.Client, config Config) Collection {
 		Notification: client.Database(config.DBName).Collection("notifications"),
 	}
 }
+
+
+
+
+
+

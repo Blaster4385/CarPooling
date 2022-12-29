@@ -21,7 +21,7 @@ type Payload struct {
 	ExpiredAt time.Time `json:"expired_at"`
 }
 
-func NewPayload(email string, phone string, duration time.Duration) (*Payload, error) {
+func NewPayload(email, phone, name string, duration time.Duration) (*Payload, error) {
 	tokenID, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
@@ -31,6 +31,7 @@ func NewPayload(email string, phone string, duration time.Duration) (*Payload, e
 		ID:        tokenID,
 		Email:     email,
 		Phone:     phone,
+		Name:      name,
 		IssuedAt:  time.Now(),
 		ExpiredAt: time.Now().Add(duration),
 	}

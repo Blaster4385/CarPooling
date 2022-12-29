@@ -14,12 +14,13 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readconcern"
+	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 )
 
 func (server *Server) createRide(c *gin.Context) {
 	var req models.CreateRideReq
 	var result models.CreateDriverResponse
-	
 
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
@@ -37,6 +38,7 @@ func (server *Server) createRide(c *gin.Context) {
 		return
 	}
 
+	// * Dont put in Go routine to prevent unncecessary calls to google maps api
 	placeRoute, err := mapsApi.GetRoute(req.Origin, req.Destination, server.config)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -92,39 +94,58 @@ func (server *Server) deleteRide(c *gin.Context) {
 	var result models.CreateRideResp
 	var notifications []interface{}
 
+	wc := writeconcern.New(writeconcern.WMajority())
+	rc := readconcern.Snapshot()
+	txnOpts := options.Transaction().SetWriteConcern(wc).SetReadConcern(rc)
+
 	authPayload := c.MustGet(authorizationPayloadKey).(*token.Payload)
 
-	filter := bson.M{"email": authPayload.Email, "complete": false}
-	err := server.collection.Ride.FindOneAndDelete(c, filter).Decode(&result)
+	session, err := server.client.StartSession()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+	defer session.EndSession(c)
 
+	// * Callback function for transaction
+	callback := func(sessCtx mongo.SessionContext) (interface{}, error) {
+		// * Delete ride
+		filter := bson.M{"email": authPayload.Email, "complete": false}
+		err = server.collection.Ride.FindOneAndDelete(c, filter).Decode(&result)
+		if err != nil {
+			return nil, err
+		}
+
+		// * Send notification to all passengers that ride has been cancelled
+		msg := fmt.Sprintf("Ride has been cancelled by driver %s", authPayload.Email)
+		t := time.Now().Unix()
+
+		for _, passenger := range result.Passengers {
+			notification := models.NotificationModel{
+				Email:       passenger.Email,
+				SenderPhone: authPayload.Phone,
+				SenderName:  authPayload.Name,
+				Content:     msg,
+				Timestamp:   t,
+				Type:        3,
+			}
+			notifications = append(notifications, notification)
+		}
+
+		_, err = server.collection.Notification.InsertMany(c, notifications)
+		if err != nil {
+			return nil, err
+		}
+
+		return result, nil
+	}
+
+	_, err = session.WithTransaction(c, callback, txnOpts)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			c.JSON(http.StatusBadRequest, errorResponse(err))
 			return
 		}
-		c.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
-	}
-
-	// TODO : send notification to all passengers that ride has been cancelled
-
-	msg := fmt.Sprintf("Ride has been cancelled by driver %s", authPayload.Email)
-	t := time.Now().Unix()
-
-	for _, passenger := range result.Passengers {
-		notification := models.NotificationModel{
-			Email:    passenger.Email,
-			SenderPhone: authPayload.Phone,
-			SenderName: authPayload.Name,
-			Content:  msg,
-			Timestamp: t,
-			Type: 3,
-		}
-		notifications = append(notifications, notification)
-	}	
-
-	_, err = server.collection.Notification.InsertMany(c, notifications)
-	if err != nil {
 		c.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -315,8 +336,8 @@ func (server *Server) searchRide(c *gin.Context) {
 					"type":        "MultiPoint",
 					"coordinates": []float64{point.Lng, point.Lat},
 				},
-				"maxDistance": 5000,
-				"spherical":   true,
+				"maxDistance":   5000,
+				"spherical":     true,
 				"distanceField": "distance",
 			},
 		},
