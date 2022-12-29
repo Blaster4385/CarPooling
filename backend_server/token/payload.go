@@ -16,6 +16,7 @@ type Payload struct {
 	ID        uuid.UUID `json:"id"`
 	Phone     string    `json:"phone"`
 	Email     string    `json:"email"`
+	Name      string    `json:"name"`
 	IssuedAt  time.Time `json:"issued_at"`
 	ExpiredAt time.Time `json:"expired_at"`
 }

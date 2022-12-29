@@ -2,7 +2,9 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/achintya-7/car_pooling_backend/mapsApi"
 	"github.com/achintya-7/car_pooling_backend/models"
@@ -17,6 +19,7 @@ import (
 func (server *Server) createRide(c *gin.Context) {
 	var req models.CreateRideReq
 	var result models.CreateDriverResponse
+	
 
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
@@ -87,6 +90,7 @@ func (server *Server) createRide(c *gin.Context) {
 
 func (server *Server) deleteRide(c *gin.Context) {
 	var result models.CreateRideResp
+	var notifications []interface{}
 
 	authPayload := c.MustGet(authorizationPayloadKey).(*token.Payload)
 
@@ -103,6 +107,27 @@ func (server *Server) deleteRide(c *gin.Context) {
 	}
 
 	// TODO : send notification to all passengers that ride has been cancelled
+
+	msg := fmt.Sprintf("Ride has been cancelled by driver %s", authPayload.Email)
+	t := time.Now().Unix()
+
+	for _, passenger := range result.Passengers {
+		notification := models.NotificationModel{
+			Email:    passenger.Email,
+			SenderPhone: authPayload.Phone,
+			SenderName: authPayload.Name,
+			Content:  msg,
+			Timestamp: t,
+			Type: 3,
+		}
+		notifications = append(notifications, notification)
+	}	
+
+	_, err = server.collection.Notification.InsertMany(c, notifications)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "ride deleted successfully"})
 }
@@ -165,42 +190,42 @@ func (server *Server) getAllRidesPassenger(c *gin.Context) {
 }
 
 // TODO : Check all the conditions before updating the ride, otherwise skip it
-func (server *Server) updateRide(c *gin.Context) {
-	var req models.UpdateRideReq
-	var result models.CreateRideResp
+// func (server *Server) updateRide(c *gin.Context) {
+// 	var req models.UpdateRideReq
+// 	var result models.CreateRideResp
 
-	err := c.ShouldBindJSON(&req)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, errorResponse(err))
-		return
-	}
+// 	err := c.ShouldBindJSON(&req)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, errorResponse(err))
+// 		return
+// 	}
 
-	authPayload := c.MustGet(authorizationPayloadKey).(*token.Payload)
+// 	authPayload := c.MustGet(authorizationPayloadKey).(*token.Payload)
 
-	pByte, err := bson.Marshal(req)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
-	}
+// 	pByte, err := bson.Marshal(req)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, errorResponse(err))
+// 		return
+// 	}
 
-	var updateDoc bson.M
+// 	var updateDoc bson.M
 
-	err = bson.Unmarshal(pByte, &updateDoc)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
-	}
+// 	err = bson.Unmarshal(pByte, &updateDoc)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, errorResponse(err))
+// 		return
+// 	}
 
-	update := bson.M{"$set": updateDoc}
-	filter := bson.M{"email": authPayload.Email, "complete": false}
-	err = server.collection.Ride.FindOneAndUpdate(c, filter, update).Decode(&result)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
-	}
+// 	update := bson.M{"$set": updateDoc}
+// 	filter := bson.M{"email": authPayload.Email, "complete": false}
+// 	err = server.collection.Ride.FindOneAndUpdate(c, filter, update).Decode(&result)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, errorResponse(err))
+// 		return
+// 	}
 
-	c.JSON(http.StatusOK, result)
-}
+// 	c.JSON(http.StatusOK, result)
+// }
 
 func (server *Server) completeRide(c *gin.Context) {
 

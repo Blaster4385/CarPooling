@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -21,6 +22,8 @@ func (server *Server) createRequest(c *gin.Context) {
 	var result models.CreateRideResp
 	var rideResult models.CreateRideResp
 	var resp models.RequestToDriverRes
+	var notification models.NotificationModel
+
 	errChan1 := make(chan error)
 	errChan2 := make(chan error)
 
@@ -108,6 +111,22 @@ func (server *Server) createRequest(c *gin.Context) {
 	}
 
 	// TODO : send notification to driver that a request has been made
+	msg := fmt.Sprintf("New request from %s has been made for the Ride %s", authPayload.Name, req.RideId)
+
+	notification = models.NotificationModel{
+		Email:       result.Email,
+		SenderPhone: authPayload.Phone,
+		SenderName:  authPayload.Name,
+		Type:        0,
+		Content:     msg,
+		Timestamp:   time.Now().Unix(),
+	}
+
+	_, err = server.collection.Notification.InsertOne(c, notification)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
 
 	c.JSON(http.StatusOK, resp)
 
@@ -185,6 +204,12 @@ func (server *Server) acceptRideRequest(c *gin.Context) {
 
 	authPayload := c.MustGet(authorizationPayloadKey).(*token.Payload)
 
+	session, err := server.client.StartSession()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errorResponse(err))
+	}
+	defer session.EndSession(c)
+
 	// * check if ride exists and has seats available and then push in the passenger data
 	filter := bson.M{
 		"email":    authPayload.Email,
@@ -231,6 +256,21 @@ func (server *Server) acceptRideRequest(c *gin.Context) {
 	}
 
 	// TODO : Send notification to the passenger that the request has been accepted
+	msg := fmt.Sprintf("Your request for ride has been ACCEPTED by the driver %s", authPayload.Name)
+
+	notification := models.NotificationModel{
+		Email:       req.Email,
+		Content:     msg,
+		Timestamp:   time.Now().Unix(),
+		SenderPhone: authPayload.Phone,
+		SenderName:  authPayload.Name,
+		Type:        1,
+	}
+	_, err = server.collection.Notification.InsertOne(c, notification)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Request accepted successfully"})
 
@@ -285,6 +325,22 @@ func (server *Server) rejectRideRequest(c *gin.Context) {
 	}
 
 	// TODO : Send notification to the passenger that the request has been rejected
+	msg := fmt.Sprintf("Your request for ride has been DECLINED by the driver %s", authPayload.Name)
+
+	notification := models.NotificationModel{
+		Email:       req.Email,
+		Content:     msg,
+		Timestamp:   time.Now().Unix(),
+		SenderPhone: authPayload.Phone,
+		SenderName:  authPayload.Name,
+		Type:        2,
+	}
+
+	_, err = server.collection.Notification.InsertOne(c, notification)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Request Declined Successfully"})
 }
