@@ -13,9 +13,13 @@ This is a car pooling application for sharing a ride to and from Amity Universit
 # Environment Variables
 
 These environment variables need to be set for the backend to work:
-- ```MONGO_URI=```
-- ```DB_NAME=```
-- ```SERVER_ADDRESS=localhost:8080```
-- ```TOKEN_SECRET=```
-- ```ACCESS_TOKEN_DURATION=```
-- ```MAPS_KEY=```
+```
+
+MONGO_URI=
+DB_NAME=
+SERVER_ADDRESS=localhost:8080
+TOKEN_SECRET=
+ACCESS_TOKEN_DURATION=
+MAPS_KEY=
+
+```
