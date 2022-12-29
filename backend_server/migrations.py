@@ -6,9 +6,10 @@ import time
 load_dotenv("app.env")
 
 mongo_uri = os.environ.get("MONGO_URI")
+db_name = os.environ.get("DB_NAME")
 
 client = pymongo.MongoClient(mongo_uri)
-db = client["dev"]
+db = client[db_name]
 
 driversCollection = db["drivers"]
 try:
@@ -44,7 +45,5 @@ try:
     notificationsCollection.create_index("timestamp", name="timestamp_index", expireAfterSeconds=172800)
 except:
     print("Notifications Index already exists")
-
-time.sleep(5)
 
 print("Migrations complete")
