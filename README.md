@@ -1,7 +1,8 @@
 # CarPooling
 
-A Car Pooling application for ride share to and from Amity College
-Teck Stack
+This is a car pooling application for sharing a ride to and from Amity University.
+
+# Teck Stack:
 - Go
 - MongoDB
 - Gin
@@ -9,12 +10,12 @@ Teck Stack
 - Flutter
 - Flutter Maps SDK
 
-ENV variables for Backend
-```
-MONGO_URI=
-DB_NAME=
-SERVER_ADDRESS=localhost:8080
-TOKEN_SECRET=
-ACCESS_TOKEN_DURATION=
-MAPS_KEY=
-```
+# Environment Variables
+
+These environment variables need to be set for the backend to work:
+- ```MONGO_URI=```
+- ```DB_NAME=```
+- ```SERVER_ADDRESS=localhost:8080```
+- ```TOKEN_SECRET=```
+- ```ACCESS_TOKEN_DURATION=```
+- ```MAPS_KEY=```
