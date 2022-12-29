@@ -5,7 +5,9 @@ Teck Stack
 - Go
 - MongoDB
 - Gin
+- Google Maps API
 - Flutter
+- Flutter Maps SDK
 
 ENV variables for Backend
 MONGO_URI=
