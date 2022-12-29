@@ -1,4 +1,10 @@
 server:
 	go run main.go
 
-.PHONY: server
+install:
+	pip install -r requirements.txt
+
+migrate:
+	python migrations.py
+
+.PHONY: server install migrate
